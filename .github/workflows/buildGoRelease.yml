@@ -1,0 +1,26 @@
+name: Go Make CI
+
+on: 
+  release:
+    types: [published]
+
+jobs:
+
+  release:
+    name: buildGo_template Release
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install dependencies
+      run: docker pull golang
+    - name: make all-release 
+      run: make all-release  
+    - name: Run app
+      run: ./bin/linux_amd64/myapp
+    - name: Create Release
+      uses: JasonEtco/upload-to-release@master
+      with:
+        args: all-release.tar.gz application/x-gzip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
