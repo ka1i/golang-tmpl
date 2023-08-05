@@ -1,26 +1,32 @@
-name: Go Make CI
+name: Go Release CI
 
-on: 
-  release:
-    types: [published]
+on:
+    push:
+      # run only against tags
+      tags:
+        - '*'
 
 jobs:
-
   release:
-    name: buildGo_template Release
+    name: Build Go App Release
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v1
-    - name: Install dependencies
-      run: docker pull golang
-    - name: make all-release 
-      run: make all-release  
-    - name: Run app
-      run: ./bin/linux_amd64/myapp
-    - name: Create Release
-      uses: JasonEtco/upload-to-release@master
+    - uses: actions/checkout@v3
       with:
-        args: all-release.tar.gz application/x-gzip
+        fetch-depth: 0
+    - run: git fetch --force --tags
+    - uses: actions/setup-go@v4
+      with:
+        go-version-file: 'go.mod'
+    - run: go version
+    - uses: goreleaser/goreleaser-action@v4
+      with:
+        # either 'goreleaser' (default) or 'goreleaser-pro':
+        distribution: goreleaser
+        version: latest
+        args: release --clean
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Your GoReleaser Pro key, if you are using the 'goreleaser-pro'
+        # distribution:
+        # GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
